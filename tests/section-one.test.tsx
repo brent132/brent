@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import RootLayout, { metadata } from "../app/layout";
 import Home from "../app/page";
 
 test("section one renders the approved content and assets", () => {
@@ -33,4 +34,17 @@ test("section one keeps controls inert and uses Tailwind sizing without pixel li
   assert.doesNotMatch(html, /\[[^\]]*\d+(?:\.\d+)?px[^\]]*\]/);
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
   assert.equal((html.match(/<button\b/g) ?? []).length, 13);
+});
+
+test("root layout identifies the portfolio and preserves the direction contract", () => {
+  const html = renderToStaticMarkup(
+    <RootLayout params={Promise.resolve({})}>
+      <main>Fixture</main>
+    </RootLayout>,
+  );
+
+  assert.equal(metadata.title, "Brent | Full-Stack Developer");
+  assert.match(html, /user-pinned-section1-reference/);
+  assert.match(html, /impeccable-direction-contract/);
+  assert.doesNotMatch(html, /\d+(?:\.\d+)?px\b/);
 });
