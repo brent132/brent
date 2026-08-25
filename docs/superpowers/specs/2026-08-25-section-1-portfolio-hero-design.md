@@ -45,7 +45,7 @@ Copy the reference content exactly except for the navbar identity: remove “Bre
 3. `SocialLinks`: labeled icon controls.
 4. `ScrollCue`: decorative mouse cue and label.
 
-Small repeated controls may share local style primitives, but section-specific markup and styling should remain scoped to section 1. Icons will come from a maintained icon library rather than hand-drawn approximations.
+Small repeated controls will use the local shadcn/ui `Button` primitive, customized through Tailwind classes to match the reference rather than retaining generic default styling. Section-specific layout and composition remain scoped to section 1. Every interface icon will come from Lucide React rather than hand-drawn approximations.
 
 ## Layout and Responsive Behavior
 
