@@ -55,6 +55,8 @@ At tablet widths, type and spacing compress while preserving the two-sided compo
 
 No horizontal scrolling is permitted at supported widths. Touch targets must remain at least 44 by 44 CSS pixels.
 
+All implementation sizing, spacing, and responsive layout must use Tailwind's standard utility scale and named breakpoints. Do not use CSS `px` units or Tailwind arbitrary pixel classes such as `w-[100px]`; use the closest standard Tailwind utility or a relative, fluid Tailwind utility instead.
+
 ## Interaction and Accessibility
 
 All visible controls are inert in this iteration. They will use semantic buttons with no event handlers, clear accessible names, visible focus rings, and hover/focus transitions limited to border, color, glow, and small translations. Motion will respect `prefers-reduced-motion`.
