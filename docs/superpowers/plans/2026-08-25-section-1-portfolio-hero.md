@@ -33,7 +33,7 @@
 - Create `components.json`: records shadcn/ui's project configuration.
 - Create `components/ui/button.tsx`: owns the generated and locally customizable shadcn/ui button primitive.
 - Create `lib/utils.ts`: owns shadcn/ui's `cn()` class-merging helper.
-- Create `tests/section-one.test.mjs`: guards content, inert controls, semantic structure, asset usage, and the no-pixel sizing rule.
+- Create `tests/section-one.test.tsx`: renders the real React route and guards content, inert controls, semantic structure, asset usage, and the no-pixel sizing rule.
 - Create `.impeccable/surfaces/app-page-tsx.md`: records route-specific Persuade strategy.
 - Add `public/section1.jpg` and `public/logo blue transparent.png`: user-supplied shipping assets with embedded provenance.
 - Create `.impeccable/review/hero-repro.png`, `.impeccable/review/desktop.png`, and `.impeccable/review/mobile.png`: visual verification evidence.
@@ -45,7 +45,7 @@
 
 **Files:**
 - Create: `.impeccable/surfaces/app-page-tsx.md`
-- Create: `tests/section-one.test.mjs`
+- Create: `tests/section-one.test.tsx`
 - Create: `app/components/section-one.tsx`
 - Modify: `app/page.tsx`
 - Modify: `package.json`
@@ -58,7 +58,7 @@
 
 **Interfaces:**
 - Consumes: `public/section1.jpg`, `public/logo blue transparent.png`, and the exact copy in the approved spec.
-- Produces: `SectionOne(): React.JSX.Element`, imported by the `/` route; `pnpm test` runs the source-contract tests.
+- Produces: `SectionOne(): React.JSX.Element`, imported by the `/` route; `pnpm test` renders the real route through React DOM Server.
 
 - [ ] **Step 1: Read the authoritative Next.js image guide and the Impeccable craft floor**
 
@@ -107,43 +107,35 @@ Then remove only the temporary body file through `apply_patch`. Verify the final
 
 - [ ] **Step 3: Write the failing structural test**
 
-Create `tests/section-one.test.mjs`:
+Add `tsx` as a dev dependency, then create `tests/section-one.test.tsx`:
 
-```js
+```tsx
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { renderToStaticMarkup } from "react-dom/server";
 
-const componentPath = "app/components/section-one.tsx";
-const pagePath = "app/page.tsx";
-const read = (path) => (existsSync(path) ? readFileSync(path, "utf8") : "");
+import Home from "../app/page";
 
-test("section one exposes the approved content and asset contract", () => {
-  const component = read(componentPath);
-  const page = read(pagePath);
+test("section one renders the approved content and assets", () => {
+  const html = renderToStaticMarkup(<Home />);
 
-  assert.ok(component, "section-one.tsx must exist");
-  assert.match(page, /import \{ SectionOne \}/);
-  assert.match(page, /<SectionOne \/>/);
-  assert.match(component, /@\/components\/ui\/button/);
-  assert.match(component, /lucide-react/);
-  assert.match(component, /section1\.jpg/);
-  assert.match(component, /logo blue transparent\.png/);
-  assert.match(component, /FULL-STACK DEVELOPER & WEB DESIGNER/);
-  assert.match(component, /I build digital solutions/);
-  assert.match(component, /fast, modern,/);
-  assert.match(component, /user-focused\./);
-  assert.match(component, /View My Work/);
-  assert.match(component, /Contact Me/);
-  assert.match(component, /Download Resume/);
-  assert.doesNotMatch(component, /Brent Ortega/);
+  assert.match(html, /section1\.jpg/);
+  assert.match(html, /logo%20blue%20transparent\.png/);
+  assert.match(html, /FULL-STACK DEVELOPER &amp; WEB DESIGNER/);
+  assert.match(html, /I build digital solutions/);
+  assert.match(html, /fast, modern,/);
+  assert.match(html, /user-focused\./);
+  assert.match(html, /View My Work/);
+  assert.match(html, /Contact Me/);
+  assert.match(html, /Download Resume/);
+  assert.doesNotMatch(html, /Brent Ortega/);
 });
 ```
 
 Add this script to `package.json`:
 
 ```json
-"test": "node --test tests/*.test.mjs"
+"test": "node --import tsx --test tests/*.test.tsx"
 ```
 
 - [ ] **Step 4: Run the test and verify RED**
@@ -154,7 +146,7 @@ Run:
 corepack pnpm test
 ```
 
-Expected: FAIL with `section-one.tsx must exist` and/or missing `SectionOne` route composition.
+Expected: FAIL because the rendered default page does not contain the approved section-1 content or assets.
 
 - [ ] **Step 5: Initialize shadcn/ui and add its Button component**
 
@@ -164,6 +156,7 @@ Run:
 corepack pnpm dlx shadcn@latest init -d --pointer
 corepack pnpm dlx shadcn@latest add button
 corepack pnpm add lucide-react
+corepack pnpm add -D tsx
 ```
 
 The current shadcn CLI supports Tailwind v4 and React 19. These commands must create `components.json`, `components/ui/button.tsx`, and `lib/utils.ts`, add Lucide and shadcn dependencies to `package.json`, update `pnpm-lock.yaml`, and merge theme variables into `app/globals.css`. Do not hand-edit the lockfile. Preserve the existing Poppins font mapping when reconciling the generated CSS.
@@ -246,14 +239,14 @@ Expected: PASS.
 - [ ] **Step 9: Commit**
 
 ```powershell
-git add .impeccable/surfaces/app-page-tsx.md tests/section-one.test.mjs app/components/section-one.tsx app/page.tsx components.json components/ui/button.tsx lib/utils.ts app/globals.css package.json pnpm-lock.yaml public/section1.jpg "public/logo blue transparent.png"
+git add .impeccable/surfaces/app-page-tsx.md tests/section-one.test.tsx app/components/section-one.tsx app/page.tsx components.json components/ui/button.tsx lib/utils.ts app/globals.css package.json pnpm-lock.yaml public/section1.jpg "public/logo blue transparent.png"
 git commit -m "feat: add portfolio section one structure"
 ```
 
 ### Task 2: Reproduce the approved visual system responsively
 
 **Files:**
-- Modify: `tests/section-one.test.mjs`
+- Modify: `tests/section-one.test.tsx`
 - Modify: `app/components/section-one.tsx`
 
 **Interfaces:**
@@ -264,21 +257,21 @@ git commit -m "feat: add portfolio section one structure"
 
 Append this test:
 
-```js
+```tsx
 test("section one keeps controls inert and uses Tailwind sizing without pixel literals", () => {
-  const component = read(componentPath);
+  const html = renderToStaticMarkup(<Home />);
 
-  assert.match(component, /min-h-svh/);
-  assert.match(component, /lg:grid-cols-2/);
-  assert.match(component, /hover:/);
-  assert.match(component, /focus-visible:/);
-  assert.match(component, /motion-reduce:/);
-  assert.doesNotMatch(component, /\bhref\s*=/);
-  assert.doesNotMatch(component, /\bonClick\s*=/);
-  assert.doesNotMatch(component, /\bdownload\s*=/);
-  assert.doesNotMatch(component, /\d+(?:\.\d+)?px\b/);
-  assert.doesNotMatch(component, /\[[^\]]*\d+(?:\.\d+)?px[^\]]*\]/);
-  assert.equal((component.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(html, /min-h-svh/);
+  assert.match(html, /lg:grid-cols-2/);
+  assert.match(html, /hover:/);
+  assert.match(html, /focus-visible:/);
+  assert.match(html, /motion-reduce:/);
+  assert.doesNotMatch(html, /<a\b/);
+  assert.doesNotMatch(html, /\bhref=/);
+  assert.doesNotMatch(html, /\d+(?:\.\d+)?px\b/);
+  assert.doesNotMatch(html, /\[[^\]]*\d+(?:\.\d+)?px[^\]]*\]/);
+  assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+  assert.equal((html.match(/<button\b/g) ?? []).length, 13);
 });
 ```
 
@@ -346,14 +339,14 @@ Expected: both exit 0 with no test failures or ESLint errors.
 - [ ] **Step 5: Commit**
 
 ```powershell
-git add tests/section-one.test.mjs app/components/section-one.tsx
+git add tests/section-one.test.tsx app/components/section-one.tsx
 git commit -m "feat: style responsive portfolio hero"
 ```
 
 ### Task 3: Add metadata, global canvas, and the durable direction contract
 
 **Files:**
-- Modify: `tests/section-one.test.mjs`
+- Modify: `tests/section-one.test.tsx`
 - Modify: `app/layout.tsx`
 - Modify: `app/globals.css`
 
@@ -365,21 +358,20 @@ git commit -m "feat: style responsive portfolio hero"
 
 Extend the test file:
 
-```js
-const layoutPath = "app/layout.tsx";
-const globalsPath = "app/globals.css";
+```tsx
+import RootLayout, { metadata } from "../app/layout";
 
 test("root layout identifies the portfolio and preserves the direction contract", () => {
-  const layout = read(layoutPath);
-  const globals = read(globalsPath);
-  const source = `${layout}\n${globals}`;
+  const html = renderToStaticMarkup(
+    <RootLayout>
+      <main>Fixture</main>
+    </RootLayout>,
+  );
 
-  assert.match(layout, /Brent \| Full-Stack Developer/);
-  assert.match(layout, /user-pinned-section1-reference/);
-  assert.match(layout, /impeccable-direction-contract/);
-  assert.match(globals, /color-scheme: dark/);
-  assert.doesNotMatch(source, /\d+(?:\.\d+)?px\b/);
-  assert.doesNotMatch(source, /\[[^\]]*\d+(?:\.\d+)?px[^\]]*\]/);
+  assert.equal(metadata.title, "Brent | Full-Stack Developer");
+  assert.match(html, /user-pinned-section1-reference/);
+  assert.match(html, /impeccable-direction-contract/);
+  assert.doesNotMatch(html, /\d+(?:\.\d+)?px\b/);
 });
 ```
 
@@ -445,7 +437,7 @@ Expected: tests, lint, and build exit 0; `rg` finds the seed key in built output
 - [ ] **Step 6: Commit**
 
 ```powershell
-git add tests/section-one.test.mjs app/layout.tsx app/globals.css
+git add tests/section-one.test.tsx app/layout.tsx app/globals.css
 git commit -m "feat: finalize portfolio hero shell"
 ```
 
